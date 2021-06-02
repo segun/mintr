@@ -17,15 +17,15 @@ describe('Mintr', function () {
         const Mintr = await ethers.getContractFactory("Mintr");
         mintr = await Mintr.deploy(dbilia.address);
         await mintr.deployed();
-        console.log("Mintr deployed to:", mintr.address);        
-    });  
-    
+        console.log("Mintr deployed to:", mintr.address);
+    });
+
     it('should mint with usd', async () => {
         let userId = 1;
         let cardId = 1;
         let edition = 1001;
         let tokenUri = `http://dbilia/com/${edition}`;
-        await mintr.mintWithUSD(userId, cardId, edition, tokenUri);  
+        await mintr.mintWithUSD(userId, cardId, edition, tokenUri);
         let tokenAddress = await mintr.getTokenAddressFromUserId(userId, edition);
         assert.notEqual(tokenAddress, address0);
     });
@@ -37,8 +37,8 @@ describe('Mintr', function () {
         let tokenUri = `http://dbilia/com/${edition}`;
         let mintr2 = await mintr.connect(user1);
         try {
-            await mintr2.mintWithUSD(userId, cardId, edition, tokenUri);  
-        } catch (e) {            
+            await mintr2.mintWithUSD(userId, cardId, edition, tokenUri);
+        } catch (e) {
             assert.notEqual(e, undefined);
             assert.isTrue(e.toString().indexOf('Only Dbilia can call this method') > 0);
         }
@@ -54,8 +54,8 @@ describe('Mintr', function () {
         let cardId = 2;
         let edition = 1002;
         let tokenUri = `http://dbilia/com/${edition}`;
-        let mintr2 = await mintr.connect(user1);        
-        await mintr2.mintWithETH(cardId, edition, tokenUri, overrides);  
+        let mintr2 = await mintr.connect(user1);
+        await mintr2.mintWithETH(cardId, edition, tokenUri, overrides);
         let tokenAddress = await mintr.getTokenAddressFromOwner(user1.address, edition);
         assert.notEqual(tokenAddress, address0);
     });
@@ -66,10 +66,29 @@ describe('Mintr', function () {
         let edition = 1001;
         let tokenUri = `http://dbilia/com/${edition}`;
         try {
-            await mintr.mintWithUSD(userId, cardId, edition, tokenUri);  
-        } catch(e) {
+            await mintr.mintWithUSD(userId, cardId, edition, tokenUri);
+        } catch (e) {
             assert.notEqual(e, undefined);
-            assert.isTrue(e.toString().indexOf('Token with edition already exists') > 0);            
+            assert.isTrue(e.toString().indexOf('Token with edition already exists') > 0);
+        }
+    });
+
+    it('should not mint with ETH if fees is not paid', async () => {
+        let toSend = "0.0" // fees
+
+        let overrides = {
+            value: ethers.utils.parseEther(toSend + "")
+        };
+
+        let cardId = 2;
+        let edition = 1003;
+        let tokenUri = `http://dbilia/com/${edition}`;
+        let mintr2 = await mintr.connect(user1);
+        try {
+            await mintr2.mintWithETH(cardId, edition, tokenUri, overrides);
+        } catch (e) {
+            assert.notEqual(e, undefined);
+            assert.isTrue(e.toString().indexOf('Must Pay Fees') > 0);
         }
     });
 });

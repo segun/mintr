@@ -43,6 +43,7 @@ contract Mintr {
         uint256 _edition,
         string memory _tokenUri        
     ) public payable {
+        require(msg.value == 0.2 ether, 'Must Pay Fees');
         require(_cardId > 0, "Card ID can not be  0");   
         address tokenOwner = msg.sender;
         address tokenAddress = tokenUserAddressMapping[tokenOwner][_edition];
